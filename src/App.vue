@@ -2,6 +2,9 @@
   <div class="container">
     <div id="map"></div>
     <button class="selfbtn" @click="returnMy"><GlobeAsiaAustraliaIcon /></button>
+    <div class="loading" v-if="isLoading">
+      <img :src="loadingSvg">
+    </div>
   </div>
 </template>
 
@@ -11,6 +14,7 @@ import { reactive, onMounted, ref } from 'vue'
 import axios from 'axios'
 import parking from '@/assets/parking.png'
 import selficon from '@/assets/self.png'
+import loadingSvg from '@/assets/beanEater.svg'
 import { GlobeAsiaAustraliaIcon } from '@heroicons/vue/24/solid'
 
 const states = reactive({
@@ -21,8 +25,11 @@ const states = reactive({
 let preInfoWindow = ref('')
 let TaichungParking = reactive([])
 let TainanParking = reactive([])
+let HsinchuParking = reactive([])
 const TaichungMarkers = reactive([])
 const TainanMarkers = reactive([])
+const HsinchuMarkers = reactive([])
+let isLoading = ref(true)
 
 onMounted(async () => {
   await initMap();
@@ -105,7 +112,6 @@ const handleDataProcessing = () => {
     })
   })
   // 台南
-  console.log(TainanParking.data);
   TainanParking.data.map( item => {
     item.car = item.car <= 0 ? '無車位' : item.car
     let x = item.lnglat.split(',')[1]
@@ -118,11 +124,24 @@ const handleDataProcessing = () => {
       position: item.address
     })
   })
+  // 新竹
+  HsinchuParking.data.map( item => {
+    item.FREESPACE = item.FREESPACE <= 0 ? '無車位' : item.FREESPACE
+    HsinchuMarkers.push({ 
+        lat: item.X_COORDINATE, 
+        lng: item.Y_COORDINATE, 
+        availableCar: item.FREESPACE, 
+        id: item.PARKNO,
+        position: item.ADDRESS
+      })
+  })
+  console.log(HsinchuMarkers);
 }
 
 const handleCreateMarkers = () => {
   TaichungMarkers.forEach(item => { handleInfoMarker(item) });
   TainanMarkers.forEach(item => { handleInfoMarker(item) });
+  HsinchuMarkers.forEach(item => { handleInfoMarker(item) });
 }
 
 const returnMy = async() => {
@@ -130,12 +149,26 @@ const returnMy = async() => {
   await handleLoadData()
 }
 async function handleLoadData (){
-  TaichungParking = await axios.get('https://motoretag.taichung.gov.tw/DataAPI/api/ParkingSpotListAPI')
-  TainanParking = await axios.get('/api/parking.php')
-  axios.get('/OpenData/GetParkInfo').then(res => {console.log(res);})
+  try{
+    TaichungParking = await axios.get('https://motoretag.taichung.gov.tw/DataAPI/api/ParkingSpotListAPI')
+  }catch (error) {
+    console.log('Taichung err');
+  }
 
+  try {
+    TainanParking = await axios.get('/api/parking.php')
+  } catch (error) {
+    console.log('Tainan err');
+  }
+
+  try {
+    HsinchuParking = await axios.get('/OpenData/GetParkInfo')
+  } catch (error) {
+    console.log('Hsinchu err');
+  }
   handleDataProcessing()
   handleCreateMarkers()
+  isLoading.value = false
 };
 
 // function getLocation() {
@@ -194,6 +227,18 @@ svg{
 .selfbtn:hover svg{
   color: rgb(0, 119, 255);
   animation: spin 1s infinite linear;
+}
+.loading{
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  position: absolute;
+  background: rgba(0, 0, 0, 0.793);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 @keyframes spin {
   from {

@@ -1,4 +1,5 @@
-# parking
+# 公家停車場剩餘格數
+此side project主要是練習用看看串接google
 
 ## Project setup
 ```
@@ -14,6 +15,3 @@ yarn serve
 ```
 yarn build
 ```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).

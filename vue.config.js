@@ -3,16 +3,17 @@ module.exports = defineConfig({
   transpileDependencies: true,
   devServer: {
     proxy: {
-      '/apiTainan': {
-        target: 'http://parkweb.tainan.gov.tw:2968/api/',
-        pathRewrite: { '^/apiTainan': '' },
+      '/api': {
+        // https://parkweb.tainan.gov.tw/api/parking.php
+        target: ' https://parkweb.tainan.gov.tw/api/',
+        pathRewrite: { '^/api': '' },
         changeOrigin: true,
         ws: true
       },
-      '/apiHsinchu': {
+      '/OpenData': {
         // https://hispark.hccg.gov.tw/OpenData/GetParkInfo
-        target: 'https://hispark.hccg.gov.tw',
-        pathRewrite: { '^/apiHsinchu': '' },
+        target: 'https://hispark.hccg.gov.tw/OpenData',
+        pathRewrite: { '^/OpenData': '' },
         changeOrigin: true,
         ws: true
       }
